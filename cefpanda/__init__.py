@@ -6,6 +6,7 @@ from panda3d.core import *
 import os
 import sys
 import atexit
+import pprint
 
 
 class CefClientHandler:
@@ -16,24 +17,33 @@ class CefClientHandler:
         self.browser = browser
         self.texture = texture
 
-    def OnPaint(self, browser, paintElementType, dirtyRects, buffer, width, height):
+    def OnPaint(self, **kwargs):
+        browser = kwargs['browser']
+        element_type = kwargs['element_type']
+        paint_buffer = kwargs['paint_buffer']
+        width = kwargs['width']
+        height = kwargs['height']
+
         if width != self.texture.get_x_size() or height != self.texture.get_y_size():
             return
 
-        if paintElementType == cefpython.PET_VIEW:
-            self.texture.set_ram_image(buffer.GetString(mode="bgra", origin="bottom-left"))
+        if element_type == cefpython.PET_VIEW:
+            self.texture.set_ram_image(paint_buffer.GetString(mode="bgra", origin="bottom-left"))
         else:
-            raise Exception("Unknown paintElementType: %s" % paintElementType)
+            raise Exception("Unknown element_type: %s" % element_type)
 
-    def GetViewRect(self, browser, rect):
-        rect.append(0)
-        rect.append(0)
-        rect.append(self.texture.get_x_size())
-        rect.append(self.texture.get_y_size())
+    def GetViewRect(self, **kwargs):
+        browser = kwargs['browser']
+        rect_out = kwargs['rect_out']
+        rect_out.append(0)
+        rect_out.append(0)
+        rect_out.append(self.texture.get_x_size())
+        rect_out.append(self.texture.get_y_size())
         return True
 
-    def OnLoadError(self, browser, frame, errorCode, errorText, failedURL):
-        print("load error", browser, frame, errorCode, errorText, failedURL)
+    def OnLoadError(self, **kwargs):
+        print("Load Error")
+        pprint.pprint(kwargs)
 
 
 class CEFPanda(object):
