@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://unpkg.com/vue"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="app">
+    <video playsinline autoplay muted loop id="bgvid">
+      <source src="bg.webm" type="video/webm">
+    </video>
+
+    <div id="nav">
+      <ul>
+        <li><a href="#">Status</a></li>
+        <li><a href="#">Items</a></li>
+        <li><a href="#">Options</a></li>
+      </ul>
+    </div>
+
+    <div id="portraits">
+      <ul>
+        <li v-for="char in characters">
+          <char-portrait :character="char"></char-portrait>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="text/x-template" id="char-portrait-tmpl">
+    <div class="portrait">
+      <img :src="character.portrait + '.png'">
+      <span>{{character.name}}</span>
+    </div>
+  </script>
+
+  <script>
+    var data = {
+      'characters': [
+        {
+          name: "Gustav",
+          portrait: "gustav"
+        },
+        {
+          name: "Sara",
+          portrait: "sara"
+        },
+        {
+          name: "Hans",
+          portrait: "hans"
+        }
+      ]
+    }
+
+    Vue.component('char-portrait', {
+      props: ['character'],
+      template: '#char-portrait-tmpl'
+    })
+
+    var app = new Vue({
+      el: '#app',
+      data: data
+    })
+  </script>
+</body>
+</html>
