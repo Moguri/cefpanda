@@ -105,6 +105,8 @@ class CEFPanda(object):
 
         atexit.register(shutdown_cef)
 
+        self.use_mouse = True
+
     def _load_end(self, *args, **kwargs):
         self._is_loaded = True
 
@@ -198,12 +200,12 @@ class CEFPanda(object):
         cefpython.MessageLoopWork()
         self.browser.SendFocusEvent(True)
 
-        #if base.mouseWatcherNode.has_mouse():
-        #    mouse = base.mouseWatcherNode.getMouse()
-        #    rx, ry = mouse.get_x(), mouse.get_y()
-        #    x = (rx + 1.0) / 2.0 * self._cef_texture.get_x_size()
-        #    y = (ry + 1.0) / 2.0 * self._cef_texture.get_y_size()
-        #    y = self._cef_texture.get_y_size() - y
-        #    self.browser.SendMouseMoveEvent(x, y, mouseLeave=False)
+        if self.use_mouse and base.mouseWatcherNode.has_mouse():
+            mouse = base.mouseWatcherNode.getMouse()
+            rx, ry = mouse.get_x(), mouse.get_y()
+            x = (rx + 1.0) / 2.0 * self._cef_texture.get_x_size()
+            y = (ry + 1.0) / 2.0 * self._cef_texture.get_y_size()
+            y = self._cef_texture.get_y_size() - y
+            self.browser.SendMouseMoveEvent(x, y, mouseLeave=False)
 
         return task.cont
