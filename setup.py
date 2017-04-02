@@ -7,6 +7,12 @@ setup(
     url='https://github.com/Moguri/cefpanda',
     author='Mitchell Stokes',
     license='MIT',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+    ],
     packages=['cefpanda'],
     install_requires=[
         'panda3d',
