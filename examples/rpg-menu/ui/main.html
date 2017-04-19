@@ -4,7 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+
+  <!--Grabbing from a CDN for an actual game is not a good idea (forces an internet connection-->
   <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/vue-router"></script>
+
+  <link href="https://unpkg.com/animate.css" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,22 +19,44 @@
       <source src="bg.webm" type="video/webm">
     </video>
 
-    <div id="nav">
-      <ul>
-        <li><a href="#">Status</a></li>
-        <li><a href="#">Items</a></li>
-        <li><a href="#">Options</a></li>
-      </ul>
-    </div>
-
-    <div id="portraits">
-      <ul>
-        <li v-for="char in characters">
-          <char-portrait :character="char"></char-portrait>
-        </li>
-      </ul>
-    </div>
+    <transition
+      name="custom-classes-transition"
+      enter-active-class="animated fadeInLeft"
+      leave-active-class="animated fadeOutRight"
+    >
+      <router-view></router-view>
+    </transition>
   </div>
+
+  <script type="text/x-template" id="home-comp">
+    <div id="home">
+      <div class="nav">
+        <ul>
+          <li><a href="#">Status</a></li>
+          <li><a href="#">Items</a></li>
+          <li><router-link :to="{name: 'options'}">Options</router-link></li>
+        </ul>
+      </div>
+
+      <div id="portraits">
+        <ul>
+          <li v-for="char in characters">
+            <char-portrait :character="char"></char-portrait>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/x-template" id="options-comp">
+    <div id="options">
+      <div class="nav">
+        <ul>
+          <li><router-link :to="{name: 'home'}">Back</router-link></li>
+        </ul>
+      </div>
+    </div>
+  </script>
 
   <script type="text/x-template" id="char-portrait-tmpl">
     <div class="portrait">
@@ -61,9 +88,29 @@
       template: '#char-portrait-tmpl'
     })
 
+    const Home = {
+      props: ['characters'],
+      template: '#home-comp'
+    }
+
+    const Options = {
+      template: '#options-comp'
+    }
+
+    var routes = [
+      {path: '', name: 'home', component: Home, props: {characters: data.characters}},
+      {path: '/options', name: 'options', component: Options}
+    ]
+
+   
+    var router = new VueRouter({
+      routes
+    })
+
     var app = new Vue({
       el: '#app',
-      data: data
+      data: data,
+      router: router
     })
   </script>
 </body>

@@ -26,18 +26,22 @@ video#bgvid {
   transform: translateX(-50%) translateY(-50%);
 }
 
-#nav ul {
+transition {
+  animation-duration: 0.5s;
+}
+
+.nav ul {
   list-style-type: none;
   float: left;
   padding: 0;
   width: 20%;
 }
 
-#nav li {
+.nav li {
   margin-top: 1em;
 }
 
-#nav li a {
+.nav li a {
   display: block;
   color: black;
   padding: 0.5em;
@@ -47,7 +51,7 @@ video#bgvid {
   border-radius: 1.5em;
 }
 
-#nav li a:hover {
+.nav li a:hover {
   color: white;
   background-color: rgba(32, 32, 32, 0.5);
 }
