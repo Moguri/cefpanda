@@ -98,6 +98,9 @@ class CEFPanda(object):
         base.buttonThrowers[0].node().setKeystrokeEvent('keystroke')
         base.accept('keystroke', self._handle_key)
 
+        base.accept('mouse1', self._handle_mouse, [False])
+        base.accept('mouse1-up', self._handle_mouse, [True])
+
         base.taskMgr.add(self._cef_message_loop, "CefMessageLoop")
 
         def shutdown_cef():
@@ -195,6 +198,25 @@ class CEFPanda(object):
 
         keyevent['type'] = cefpython.KEYEVENT_CHAR
         self.browser.SendKeyEvent(keyevent)
+
+    def _handle_mouse(self, mouseup):
+        if not self.use_mouse or not base.mouseWatcherNode.has_mouse():
+            return
+
+        mouse = base.mouseWatcherNode.getMouse()
+        rx, ry = mouse.get_x(), mouse.get_y()
+        x = (rx + 1.0) / 2.0 * self._cef_texture.get_x_size()
+        y = (ry + 1.0) / 2.0 * self._cef_texture.get_y_size()
+        y = self._cef_texture.get_y_size() - y
+
+        self.browser.SendMouseClickEvent(
+            x,
+            y,
+            cefpython.MOUSEBUTTON_LEFT,
+            mouseup,
+            1,
+            cefpython.EVENTFLAG_NONE
+        )
 
     def _cef_message_loop(self, task):
         cefpython.MessageLoopWork()
