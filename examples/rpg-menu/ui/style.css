@@ -56,10 +56,17 @@ transition {
   background-color: rgba(32, 32, 32, 0.5);
 }
 
-#portraits ul {
-  list-style-type: none;
+.content {
   margin-top: 5%;
   float: right;
+}
+
+#options .content {
+  width: 60%;
+}
+
+#portraits ul {
+  list-style-type: none;
 }
 
 #portraits li {
