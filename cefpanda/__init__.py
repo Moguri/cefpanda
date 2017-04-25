@@ -68,6 +68,13 @@ class CefClientHandler:
         rect_out.extend([0, 0, self.texture.get_x_size(), self.texture.get_y_size()])
         return True
 
+    def OnConsoleMessage(self, **kwargs):
+        print('{} ({}:{})'.format(
+            kwargs['message'],
+            kwargs['source'],
+            kwargs['line']
+        ))
+
     def OnLoadError(self, **kwargs):
         print("Load Error")
         pprint.pprint(kwargs)
