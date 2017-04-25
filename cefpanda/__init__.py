@@ -16,6 +16,18 @@ class CefClientHandler:
     def __init__(self, browser, texture):
         self.browser = browser
         self.texture = texture
+        self.popup_img = PNMImage(0, 0)
+        self.popup_pos = [0, 0]
+        self.popup_show = False
+
+    def OnPopupShow(self, **kwargs):
+        self.popup_show = kwargs['show']
+
+    def OnPopupSize(self, **kwargs):
+        rect = kwargs['rect_out']
+        self.popup_pos = (rect[0], rect[1])
+        self.popup_img = PNMImage(rect[2], rect[3])
+        self.popup_img.add_alpha()
 
     def OnPaint(self, **kwargs):
         browser = kwargs['browser']
@@ -24,21 +36,36 @@ class CefClientHandler:
         width = kwargs['width']
         height = kwargs['height']
 
-        if width != self.texture.get_x_size() or height != self.texture.get_y_size():
-            return
-
         if element_type == cefpython.PET_VIEW:
-            self.texture.set_ram_image(paint_buffer.GetString(mode="bgra", origin="bottom-left"))
+            tex = self.texture
+            if width != tex.get_x_size() or height != tex.get_y_size():
+                return
+            tex.set_ram_image(paint_buffer.GetString(mode="bgra", origin="bottom-left"))
+
+            if self.popup_show:
+                px, py = self.popup_pos
+                tex.load_sub_image(self.popup_img, px, py, 0, 0)
+        elif element_type == cefpython.PET_POPUP:
+            if width != self.popup_img.get_x_size() or height != self.popup_img.get_y_size():
+                return
+            imgdata = paint_buffer.GetString(mode="rgba", origin="top-left")
+            x, y = 0, 0
+            for i in range(0, len(imgdata), 4):
+                self.popup_img.set_xel_val(x, y, *imgdata[i:i+3])
+                #print(self.popup_img.has_alpha(), x, y, imgdata[i+3])
+                self.popup_img.set_alpha_val(x, y, imgdata[i+3])
+
+                x += 1
+                if x == width:
+                    x = 0
+                    y += 1
         else:
             raise Exception("Unknown element_type: %s" % element_type)
 
     def GetViewRect(self, **kwargs):
         browser = kwargs['browser']
         rect_out = kwargs['rect_out']
-        rect_out.append(0)
-        rect_out.append(0)
-        rect_out.append(self.texture.get_x_size())
-        rect_out.append(self.texture.get_y_size())
+        rect_out.extend([0, 0, self.texture.get_x_size(), self.texture.get_y_size()])
         return True
 
     def OnLoadError(self, **kwargs):
@@ -54,6 +81,7 @@ class CEFPanda(object):
             #"log_severity": cefpython.LOGSEVERITY_INFO,
             #"release_dcheck_enabled": False,  # Enable only when debugging
             # This directories must be set on Linux
+            "windowless_rendering_enabled": True,
             "locales_dir_path": cefpython.GetModuleDirectory()+"/locales",
             "resources_dir_path": cefpython.GetModuleDirectory(),
             "browser_subprocess_path": "%s/%s" % (
