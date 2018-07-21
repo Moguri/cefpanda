@@ -219,27 +219,22 @@ class CEFPanda(object):
 
     def _handle_key(self, keyname):
         keycode = ord(keyname)
-        vkeys = {
-            8: cefpython.VK_BACK,
-            13: cefpython.VK_RETURN,
-            27: cefpython.VK_ESCAPE,
-        }
+        text_input = keycode > 47
 
         keyevent = {
-            "type": cefpython.KEYEVENT_RAWKEYDOWN,
+            'windows_key_code': keycode,
+            'character': keycode,
+            'unmodified_character': keycode,
+            'modifiers': cefpython.EVENTFLAG_NONE,
         }
 
-        if keycode in vkeys:
-            keyevent['windows_key_code'] = vkeys[keycode]
+        if text_input:
+            keyevent['type'] = cefpython.KEYEVENT_CHAR
         else:
-            keyevent['character'] = keycode
-
+            keyevent['type'] = cefpython.KEYEVENT_RAWKEYDOWN
         self.browser.SendKeyEvent(keyevent)
 
         keyevent['type'] = cefpython.KEYEVENT_KEYUP
-        self.browser.SendKeyEvent(keyevent)
-
-        keyevent['type'] = cefpython.KEYEVENT_CHAR
         self.browser.SendKeyEvent(keyevent)
 
     def _handle_mouse(self, mouseup):
