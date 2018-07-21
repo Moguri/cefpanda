@@ -239,7 +239,6 @@ class CEFPanda(object):
 
     def _handle_text(self, keyname):
         keycode = ord(keyname)
-        print(keycode, keyname)
         text_input = keycode not in [
             7, # escape
             8, # backspace
