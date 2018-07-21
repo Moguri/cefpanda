@@ -135,11 +135,18 @@ class CEFPanda(object):
         self.browser.SetJavascriptBindings(self.jsbindings)
         self._js_func_queue = []
 
+        self.browser.SendFocusEvent(True)
         self._set_browser_size()
         base.accept('window-event', self._set_browser_size)
 
         base.buttonThrowers[0].node().setKeystrokeEvent('keystroke')
-        base.accept('keystroke', self._handle_key)
+        base.accept('keystroke', self._handle_text)
+        base.accept('arrow_left', self._handle_key, [cefpython.VK_LEFT])
+        base.accept('arrow_right', self._handle_key, [cefpython.VK_RIGHT])
+        base.accept('arrow_up', self._handle_key, [cefpython.VK_UP])
+        base.accept('arrow_down', self._handle_key, [cefpython.VK_DOWN])
+        base.accept('home', self._handle_key, [cefpython.VK_HOME])
+        base.accept('end', self._handle_key, [cefpython.VK_END])
 
         base.accept('mouse1', self._handle_mouse, [False])
         base.accept('mouse1-up', self._handle_mouse, [True])
@@ -217,9 +224,28 @@ class CEFPanda(object):
             self._cef_texture.load(img)
             self.browser.WasResized()
 
-    def _handle_key(self, keyname):
+    def _handle_key(self, keycode):
+        keyevent = {
+            'type': cefpython.KEYEVENT_RAWKEYDOWN,
+            'windows_key_code': keycode,
+            'character': keycode,
+            'unmodified_character': keycode,
+            'modifiers': cefpython.EVENTFLAG_NONE,
+        }
+        self.browser.SendKeyEvent(keyevent)
+
+        keyevent['type'] = cefpython.KEYEVENT_KEYUP
+        self.browser.SendKeyEvent(keyevent)
+
+    def _handle_text(self, keyname):
         keycode = ord(keyname)
-        text_input = keycode > 47
+        print(keycode, keyname)
+        text_input = keycode not in [
+            7, # escape
+            8, # backspace
+            9, # tab
+            127, # delete
+        ]
 
         keyevent = {
             'windows_key_code': keycode,
@@ -258,7 +284,6 @@ class CEFPanda(object):
 
     def _cef_message_loop(self, task):
         cefpython.MessageLoopWork()
-        self.browser.SendFocusEvent(True)
 
         if self.use_mouse and base.mouseWatcherNode.has_mouse():
             mouse = base.mouseWatcherNode.getMouse()
