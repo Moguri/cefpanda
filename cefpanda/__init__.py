@@ -97,8 +97,8 @@ class CEFPanda(object):
         command_line_settings = {
             "off-screen-rendering-enabled": "",
             "off-screen-frame-rate": "60",
-            "disable-gpu": "",
-            "disable-gpu-compositing": "",
+            #"disable-gpu": "",
+            #"disable-gpu-compositing": "",
         }
 
         cefpython.Initialize(app_settings, command_line_settings)
@@ -175,15 +175,10 @@ class CEFPanda(object):
 
         self._js_onload_queue = []
 
-    # Due to an issue in CEFPython, a load_url() call needs to be made
-    # before load_string() will work.
-    # CEFPython issue: https://code.google.com/p/chromiumembedded/issues/detail?id=763
-    def load_string(self, string, url):
-        url = os.path.abspath(url)
-        if sys.platform != 'win32':
-            url = 'file://' + url
-        self._is_loaded = False
-        self.browser.GetMainFrame().LoadString(string, url)
+    #probably due to the latest versions, the load string doesn't work that well
+    #so we are loading the string via an url
+    def load_string(self, string):
+        self.browser.GetMainFrame().LoadUrl(f'data:text/html,{string}')
 
     def load(self, url):
         if url:
