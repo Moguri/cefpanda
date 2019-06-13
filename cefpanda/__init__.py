@@ -13,6 +13,7 @@ class CefClientHandler:
     browser = None
     texture = None
 
+
     def __init__(self, browser, texture):
         self.browser = browser
         self.texture = texture
