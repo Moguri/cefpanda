@@ -82,21 +82,14 @@ class CEFPanda(object):
     _UI_SCALE = 1.0
 
     def __init__(self):
+        cef_mod_dir = cefpython.GetModuleDirectory()
         app_settings = {
-            #"log_severity": cefpython.LOGSEVERITY_INFO,
-            #"release_dcheck_enabled": False,  # Enable only when debugging
-            # This directories must be set on Linux
             "windowless_rendering_enabled": True,
-            "locales_dir_path": cefpython.GetModuleDirectory()+"/locales",
+            "locales_dir_path": os.path.join(cef_mod_dir, 'locales'),
             "resources_dir_path": cefpython.GetModuleDirectory(),
-            "browser_subprocess_path": "%s/%s" % (
-                cefpython.GetModuleDirectory(), "subprocess"),
+            "browser_subprocess_path": os.path.join(cef_mod_dir, 'subprocess'),
         }
         command_line_settings = {
-            "off-screen-rendering-enabled": "",
-            "off-screen-frame-rate": "60",
-            #"disable-gpu": "",
-            #"disable-gpu-compositing": "",
         }
 
         cefpython.Initialize(app_settings, command_line_settings)
