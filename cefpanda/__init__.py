@@ -8,7 +8,6 @@ from cefpython3 import cefpython
 import panda3d.core as p3d
 
 
-
 class CefClientHandler:
     browser = None
     texture = None
@@ -131,8 +130,6 @@ class CEFPanda(object):
 
 
         self.jsbindings = cefpython.JavascriptBindings()
-        self.browser.SetJavascriptBindings(self.jsbindings)
-        self._js_func_queue = []
 
         self.browser.SendFocusEvent(True)
         self._set_browser_size()
@@ -162,12 +159,6 @@ class CEFPanda(object):
     def _load_end(self, *_args, **_kwargs):
         self._is_loaded = True
 
-        # Register any functions
-        for i in self._js_func_queue:
-            self.set_js_function(*i)
-
-        self._js_func_queue = []
-
         # Execute any queued javascript
         for i in self._js_onload_queue:
             self.execute_js(i)
@@ -177,13 +168,15 @@ class CEFPanda(object):
     #probably due to the latest versions, the load string doesn't work that well
     #so we are loading the string via an url
     def load_string(self, string):
-        self.browser.GetMainFrame().LoadUrl(f'data:text/html,{string}')
+        self.load(f'data:text/html,{string}')
 
     def load(self, url):
+        self.browser.SetJavascriptBindings(self.jsbindings)
         if url:
-            url = os.path.abspath(url)
-            if sys.platform != 'win32':
-                url = 'file://' + url
+            if not url.startswith('data'):
+                url = os.path.abspath(url)
+                if sys.platform != 'win32':
+                    url = 'file://' + url
             self._is_loaded = False
             self.browser.GetMainFrame().LoadUrl(url)
         else:
@@ -196,11 +189,8 @@ class CEFPanda(object):
             self.browser.GetMainFrame().ExecuteJavascript(js_string)
 
     def set_js_function(self, name, func):
-        if not self._is_loaded:
-            self._js_func_queue.append((name, func))
-        else:
-            self.jsbindings.SetFunction(name, func)
-            self.jsbindings.Rebind()
+        self.jsbindings.SetFunction(name, func)
+        self.jsbindings.Rebind()
 
     def _set_browser_size(self, _window=None):
         width = int(round(base.win.getXSize() * self._UI_SCALE))
