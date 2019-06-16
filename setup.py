@@ -1,8 +1,12 @@
 from setuptools import setup
 
+__version__ = ''
+#pylint: disable=exec-used
+exec(open('cefpanda/version.py').read())
+
 setup(
     name='cefpanda',
-    version='0.1',
+    version=__version__,
     description='Panda3D-friendly wrapper around cefpython',
     url='https://github.com/Moguri/cefpanda',
     author='Mitchell Stokes',
