@@ -5,16 +5,12 @@ import sys
 
 
 from cefpython3 import cefpython
+from direct.showbase.DirectObject import DirectObject
 import panda3d.core as p3d
 
 
 class CefClientHandler:
-    browser = None
-    texture = None
-
-
-    def __init__(self, browser, texture):
-        self.browser = browser
+    def __init__(self, texture):
         self.texture = texture
         self.popup_img = p3d.PNMImage(0, 0)
         self.popup_pos = [0, 0]
@@ -78,10 +74,11 @@ class CefClientHandler:
         pprint.pprint(kwargs)
 
 
-class CEFPanda(object):
+class CEFPanda(DirectObject):
     _UI_SCALE = 1.0
 
     def __init__(self):
+        super().__init__()
         cef_mod_dir = cefpython.GetModuleDirectory()
         app_settings = {
             "windowless_rendering_enabled": True,
@@ -115,7 +112,7 @@ class CEFPanda(object):
             {},
             navigateUrl=''
         )
-        self.browser.SetClientHandler(CefClientHandler(self.browser, self._cef_texture))
+        self.browser.SetClientHandler(CefClientHandler(self._cef_texture))
 
         self._is_loaded = False
         self._js_onload_queue = []
@@ -126,28 +123,30 @@ class CEFPanda(object):
 
         self.browser.SendFocusEvent(True)
         self._set_browser_size()
-        base.accept('window-event', self._set_browser_size)
+        self.accept('window-event', self._set_browser_size)
 
         base.buttonThrowers[0].node().setKeystrokeEvent('keystroke')
-        base.accept('keystroke', self._handle_text)
-        base.accept('arrow_left', self._handle_key, [cefpython.VK_LEFT])
-        base.accept('arrow_right', self._handle_key, [cefpython.VK_RIGHT])
-        base.accept('arrow_up', self._handle_key, [cefpython.VK_UP])
-        base.accept('arrow_down', self._handle_key, [cefpython.VK_DOWN])
-        base.accept('home', self._handle_key, [cefpython.VK_HOME])
-        base.accept('end', self._handle_key, [cefpython.VK_END])
+        self.accept('keystroke', self._handle_text)
+        self.accept('arrow_left', self._handle_key, [cefpython.VK_LEFT])
+        self.accept('arrow_right', self._handle_key, [cefpython.VK_RIGHT])
+        self.accept('arrow_up', self._handle_key, [cefpython.VK_UP])
+        self.accept('arrow_down', self._handle_key, [cefpython.VK_DOWN])
+        self.accept('home', self._handle_key, [cefpython.VK_HOME])
+        self.accept('end', self._handle_key, [cefpython.VK_END])
 
-        base.accept('mouse1', self._handle_mouse, [False])
-        base.accept('mouse1-up', self._handle_mouse, [True])
+        self.accept('mouse1', self._handle_mouse, [False])
+        self.accept('mouse1-up', self._handle_mouse, [True])
 
-        base.taskMgr.add(self._cef_message_loop, "CefMessageLoop")
+        self._msg_loop_task = base.taskMgr.add(self._cef_message_loop, 'CEFMessageLoop')
 
-        def shutdown_cef():
-            cefpython.Shutdown()
-
-        atexit.register(shutdown_cef)
+        sys.excepthook = cefpython.ExceptHook
+        atexit.register(self._shutdown_cef)
 
         self.use_mouse = True
+
+    def _shutdown_cef(self):
+        self.browser.CloseBrowser()
+        cefpython.Shutdown()
 
     def _load_end(self, *_args, **_kwargs):
         self._is_loaded = True
@@ -185,9 +184,16 @@ class CEFPanda(object):
         self.jsbindings.SetFunction(name, func)
         self.jsbindings.Rebind()
 
-    def _set_browser_size(self, _window=None):
-        width = int(round(base.win.getXSize() * self._UI_SCALE))
-        height = int(round(base.win.getYSize() * self._UI_SCALE))
+    def _set_browser_size(self, window=None):
+        if window is None:
+            return
+
+        if window.is_closed():
+            self._shutdown_cef()
+            return
+
+        width = int(round(window.get_x_size() * self._UI_SCALE))
+        height = int(round(window.get_y_size() * self._UI_SCALE))
 
         # We only want to resize if the window size actually changed.
         if self._cef_texture.get_x_size() != width and self._cef_texture.get_y_size() != height:

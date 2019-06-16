@@ -9,7 +9,6 @@ class Game(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
 
-        self.win.set_close_request_event('escape')
         self.accept('escape', sys.exit)
 
         # Setup ui
