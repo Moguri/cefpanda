@@ -87,6 +87,13 @@ class CEFPanda(DirectObject):
             "browser_subprocess_path": os.path.join(cef_mod_dir, 'subprocess'),
         }
         command_line_settings = {
+            # Tweaking OSR performance by setting the same Chromium flags as the
+            # cefpython SDL2 example (also see cefpython issue #240)
+            "disable-gpu-compositing": "",
+            "enable-begin-frame-scheduling": "",
+        }
+        browser_settings = {
+            "windowless_frame_rate": 60,
         }
 
         cefpython.Initialize(app_settings, command_line_settings)
@@ -109,7 +116,7 @@ class CEFPanda(DirectObject):
 
         self.browser = cefpython.CreateBrowserSync(
             wininfo,
-            {},
+            browser_settings,
             navigateUrl=''
         )
         self.browser.SetClientHandler(CefClientHandler(self._cef_texture))
