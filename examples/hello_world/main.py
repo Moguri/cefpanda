@@ -19,7 +19,7 @@ class Game(ShowBase):
         def call_py2():
             print('Python called (func2)')
         self.ui.set_js_function('call_py2', call_py2)
-        self.ui.load('ui/main.html')
+        self.ui.load_file('ui/main.html')
 
 
 if __name__ == '__main__':

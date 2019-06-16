@@ -18,7 +18,7 @@ class Game(ShowBase):
         # Setup ui
         self.ui = cefpanda.CEFPanda()
         self.ui.set_js_function('update_options', self.update_options)
-        self.ui.load('ui/main.html')
+        self.ui.load_file('ui/main.html')
         options = json.dumps(self.get_options())
         self.ui.execute_js(f'ui_update_options({options})', onload=True)
 

@@ -14,7 +14,7 @@ class Game(ShowBase):
 
         self.ui = cefpanda.CEFPanda()
         self.ui.set_js_function('change_color', self.change_color)
-        self.ui.load('main.html')
+        self.ui.load_file('main.html')
 
         self.cube = self.loader.loadModel('box.egg.pz')
         self.cube.reparentTo(self.render)

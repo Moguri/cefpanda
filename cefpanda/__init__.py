@@ -2,6 +2,7 @@ import atexit
 import os
 import pprint
 import sys
+import warnings
 
 
 from cefpython3 import cefpython
@@ -164,22 +165,30 @@ class CEFPanda(DirectObject):
 
         self._js_onload_queue = []
 
-    #probably due to the latest versions, the load string doesn't work that well
-    #so we are loading the string via an url
     def load_string(self, string):
-        self.load(f'data:text/html,{string}')
+        self.load_url(f'data:text/html,{string}')
 
-    def load(self, url):
+    def load_file(self, filepath):
+        filepath = p3d.Filename(filepath)
+        filepath.make_absolute()
+        filepath = filepath.to_os_specific()
+        url = f'file://{filepath}'
+        self.load_url(url)
+
+    def load(self, filepath):
+        warnings.warn(
+            'load() is deprecated, use load_file() instead',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.load_file(filepath)
+
+    def load_url(self, url):
+        if not url:
+            url = 'about:blank'
         self.browser.SetJavascriptBindings(self.jsbindings)
-        if url:
-            if not url.startswith('data'):
-                url = os.path.abspath(url)
-                if sys.platform != 'win32':
-                    url = 'file://' + url
-            self._is_loaded = False
-            self.browser.GetMainFrame().LoadUrl(url)
-        else:
-            self.browser.GetMainFrame().LoadUrl('about:blank')
+        self._is_loaded = False
+        self.browser.GetMainFrame().LoadUrl(url)
 
     def execute_js(self, js_string, onload=False):
         if onload and not self._is_loaded:
