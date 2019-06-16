@@ -1,10 +1,12 @@
-from cefpython3 import cefpython
-from panda3d.core import *
-
-import os
-import sys
 import atexit
+import os
 import pprint
+import sys
+
+
+from cefpython3 import cefpython
+import panda3d.core as p3d
+
 
 
 class CefClientHandler:
@@ -15,21 +17,20 @@ class CefClientHandler:
     def __init__(self, browser, texture):
         self.browser = browser
         self.texture = texture
-        self.popup_img = PNMImage(0, 0)
+        self.popup_img = p3d.PNMImage(0, 0)
         self.popup_pos = [0, 0]
         self.popup_show = False
 
-    def OnPopupShow(self, **kwargs):
+    def OnPopupShow(self, **kwargs): #pylint: disable=invalid-name
         self.popup_show = kwargs['show']
 
-    def OnPopupSize(self, **kwargs):
+    def OnPopupSize(self, **kwargs): #pylint: disable=invalid-name
         rect = kwargs['rect_out']
         self.popup_pos = (rect[0], rect[1])
-        self.popup_img = PNMImage(rect[2], rect[3])
+        self.popup_img = p3d.PNMImage(rect[2], rect[3])
         self.popup_img.add_alpha()
 
-    def OnPaint(self, **kwargs):
-        browser = kwargs['browser']
+    def OnPaint(self, **kwargs): #pylint: disable=invalid-name
         element_type = kwargs['element_type']
         paint_buffer = kwargs['paint_buffer']
         width = kwargs['width']
@@ -42,39 +43,38 @@ class CefClientHandler:
             tex.set_ram_image(paint_buffer.GetString(mode="bgra", origin="bottom-left"))
 
             if self.popup_show:
-                px, py = self.popup_pos
-                tex.load_sub_image(self.popup_img, px, py, 0, 0)
+                posx, posy = self.popup_pos
+                tex.load_sub_image(self.popup_img, posx, posy, 0, 0)
         elif element_type == cefpython.PET_POPUP:
             if width != self.popup_img.get_x_size() or height != self.popup_img.get_y_size():
                 return
             imgdata = paint_buffer.GetString(mode="rgba", origin="top-left")
-            x, y = 0, 0
+            posx, posy = 0, 0
             for i in range(0, len(imgdata), 4):
-                self.popup_img.set_xel_val(x, y, *imgdata[i:i+3])
-                #print(self.popup_img.has_alpha(), x, y, imgdata[i+3])
-                self.popup_img.set_alpha_val(x, y, imgdata[i+3])
+                self.popup_img.set_xel_val(posx, posy, *imgdata[i:i+3])
+                #print(self.popup_img.has_alpha(), posx, posy, imgdata[i+3])
+                self.popup_img.set_alpha_val(posx, posy, imgdata[i+3])
 
-                x += 1
-                if x == width:
-                    x = 0
-                    y += 1
+                posx += 1
+                if posx == width:
+                    posx = 0
+                    posy += 1
         else:
             raise Exception("Unknown element_type: %s" % element_type)
 
-    def GetViewRect(self, **kwargs):
-        browser = kwargs['browser']
+    def GetViewRect(self, **kwargs): #pylint: disable=invalid-name
         rect_out = kwargs['rect_out']
         rect_out.extend([0, 0, self.texture.get_x_size(), self.texture.get_y_size()])
         return True
 
-    def OnConsoleMessage(self, **kwargs):
+    def OnConsoleMessage(self, **kwargs): #pylint: disable=invalid-name
         print('{} ({}:{})'.format(
             kwargs['message'],
             kwargs['source'],
             kwargs['line']
         ))
 
-    def OnLoadError(self, **kwargs):
+    def OnLoadError(self, **kwargs): #pylint: disable=invalid-name
         print("Load Error")
         pprint.pprint(kwargs)
 
@@ -101,17 +101,17 @@ class CEFPanda(object):
         }
 
         cefpython.Initialize(app_settings, command_line_settings)
-        self._cef_texture = Texture()
-        self._cef_texture.set_compression(Texture.CMOff)
-        self._cef_texture.set_component_type(Texture.TUnsignedByte)
-        self._cef_texture.set_format(Texture.FRgba4)
+        self._cef_texture = p3d.Texture()
+        self._cef_texture.set_compression(p3d.Texture.CMOff)
+        self._cef_texture.set_component_type(p3d.Texture.TUnsignedByte)
+        self._cef_texture.set_format(p3d.Texture.FRgba4)
 
-        card_maker = CardMaker("browser2d")
+        card_maker = p3d.CardMaker("browser2d")
         card_maker.set_frame(-self._UI_SCALE, self._UI_SCALE, -self._UI_SCALE, self._UI_SCALE)
         node = card_maker.generate()
-        self._cef_node = render2d.attachNewNode(node)
+        self._cef_node = base.render2d.attachNewNode(node)
         self._cef_node.set_texture(self._cef_texture)
-        self._cef_node.set_transparency(TransparencyAttrib.MAlpha)
+        self._cef_node.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         winhnd = base.win.getWindowHandle().getIntHandle()
         wininfo = cefpython.WindowInfo()
@@ -159,7 +159,7 @@ class CEFPanda(object):
 
         self.use_mouse = True
 
-    def _load_end(self, *args, **kwargs):
+    def _load_end(self, *_args, **_kwargs):
         self._is_loaded = True
 
         # Register any functions
@@ -189,11 +189,11 @@ class CEFPanda(object):
         else:
             self.browser.GetMainFrame().LoadUrl('about:blank')
 
-    def execute_js(self, js, onload=False):
+    def execute_js(self, js_string, onload=False):
         if onload and not self._is_loaded:
-            self._js_onload_queue.append(js)
+            self._js_onload_queue.append(js_string)
         else:
-            self.browser.GetMainFrame().ExecuteJavascript(js)
+            self.browser.GetMainFrame().ExecuteJavascript(js_string)
 
     def set_js_function(self, name, func):
         if not self._is_loaded:
@@ -202,7 +202,7 @@ class CEFPanda(object):
             self.jsbindings.SetFunction(name, func)
             self.jsbindings.Rebind()
 
-    def _set_browser_size(self, window=None):
+    def _set_browser_size(self, _window=None):
         width = int(round(base.win.getXSize() * self._UI_SCALE))
         height = int(round(base.win.getYSize() * self._UI_SCALE))
 
@@ -212,7 +212,7 @@ class CEFPanda(object):
             self._cef_texture.set_y_size(height)
 
             # Clear the texture
-            img = PNMImage(width, height)
+            img = p3d.PNMImage(width, height)
             img.fill(0, 0, 0)
             img.alpha_fill(0)
             self._cef_texture.load(img)
@@ -256,19 +256,23 @@ class CEFPanda(object):
         keyevent['type'] = cefpython.KEYEVENT_KEYUP
         self.browser.SendKeyEvent(keyevent)
 
+    def _get_mouse_pos(self):
+        mouse = base.mouseWatcherNode.getMouse()
+        posx = (mouse.get_x() + 1.0) / 2.0 * self._cef_texture.get_x_size()
+        posy = (mouse.get_y() + 1.0) / 2.0 * self._cef_texture.get_y_size()
+        posy = self._cef_texture.get_y_size() - posy
+
+        return posx, posy
+
     def _handle_mouse(self, mouseup):
         if not self.use_mouse or not base.mouseWatcherNode.has_mouse():
             return
 
-        mouse = base.mouseWatcherNode.getMouse()
-        rx, ry = mouse.get_x(), mouse.get_y()
-        x = (rx + 1.0) / 2.0 * self._cef_texture.get_x_size()
-        y = (ry + 1.0) / 2.0 * self._cef_texture.get_y_size()
-        y = self._cef_texture.get_y_size() - y
+        posx, posy = self._get_mouse_pos()
 
         self.browser.SendMouseClickEvent(
-            x,
-            y,
+            posx,
+            posy,
             cefpython.MOUSEBUTTON_LEFT,
             mouseup,
             1,
@@ -279,11 +283,7 @@ class CEFPanda(object):
         cefpython.MessageLoopWork()
 
         if self.use_mouse and base.mouseWatcherNode.has_mouse():
-            mouse = base.mouseWatcherNode.getMouse()
-            rx, ry = mouse.get_x(), mouse.get_y()
-            x = (rx + 1.0) / 2.0 * self._cef_texture.get_x_size()
-            y = (ry + 1.0) / 2.0 * self._cef_texture.get_y_size()
-            y = self._cef_texture.get_y_size() - y
-            self.browser.SendMouseMoveEvent(x, y, mouseLeave=False)
+            posx, posy = self._get_mouse_pos()
+            self.browser.SendMouseMoveEvent(posx, posy, mouseLeave=False)
 
         return task.cont

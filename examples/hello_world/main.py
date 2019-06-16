@@ -1,7 +1,8 @@
 import sys
 
+from direct.showbase.ShowBase import ShowBase
+
 import cefpanda
-from direct.showbase.ShowBase import ShowBase, DirectObject
 
 
 class Game(ShowBase):
@@ -16,5 +17,6 @@ class Game(ShowBase):
         self.ui.load('ui/main.html')
 
 
-app = Game()
-app.run()
+if __name__ == '__main__':
+    APP = Game()
+    APP.run()

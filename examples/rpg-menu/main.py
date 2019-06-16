@@ -1,11 +1,10 @@
 import json
 import sys
-sys.path.append('../../')
 
-import cefpanda
-from direct.showbase.ShowBase import ShowBase, DirectObject
+from direct.showbase.ShowBase import ShowBase
 import panda3d.core as p3d
 
+import cefpanda
 
 p3d.load_prc_file_data('', 'win-size 1280 720')
 
@@ -24,27 +23,31 @@ class Game(ShowBase):
         self.ui.execute_js('ui_update_options({})'.format(self.get_options()), onload=True)
 
     def get_options(self):
-        wp = self.win.get_properties()
+        winprops = self.win.get_properties()
         disp_info = self.pipe.get_display_information()
         options = json.dumps({
-            'selected_resolution': '{} x {}'.format(wp.get_x_size(), wp.get_y_size()),
+            'selected_resolution': '{} x {}'.format(winprops.get_x_size(), winprops.get_y_size()),
             'resolutions': sorted(list({
-                '{} x {}'.format(disp_info.get_display_mode_width(i), disp_info.get_display_mode_height(i))
+                '{} x {}'.format(
+                    disp_info.get_display_mode_width(i),
+                    disp_info.get_display_mode_height(i)
+                )
                 for i in range(disp_info.get_total_display_modes())
             }), key=lambda x: int(x.split(' x ')[1])),
-            'fullscreen': wp.get_fullscreen(),
+            'fullscreen': winprops.get_fullscreen(),
         })
 
         return options
 
 
     def update_options(self, options):
-        wp = p3d.WindowProperties()
+        winprops = p3d.WindowProperties()
         resx, resy = [int(i) for i in options['selected_resolution'].split(' x ')]
-        wp.set_size(resx, resy)
-        wp.set_fullscreen(options['fullscreen'])
-        self.win.request_properties(wp)
+        winprops.set_size(resx, resy)
+        winprops.set_fullscreen(options['fullscreen'])
+        self.win.request_properties(winprops)
 
 
-app = Game()
-app.run()
+if __name__ == '__main__':
+    APP = Game()
+    APP.run()
