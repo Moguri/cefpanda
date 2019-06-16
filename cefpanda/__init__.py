@@ -124,6 +124,7 @@ class CEFPanda(DirectObject):
 
         self._is_loaded = False
         self._js_onload_queue = []
+        self._js_func_onload_queue = []
         self.browser.SetClientCallback("OnLoadEnd", self._load_end)
 
 
@@ -161,9 +162,13 @@ class CEFPanda(DirectObject):
 
         # Execute any queued javascript
         for i in self._js_onload_queue:
-            self.execute_js(i)
+            self.exec_js_string(i)
+
+        for i in self._js_func_onload_queue:
+            self.exec_js_func(i[0], *i[1])
 
         self._js_onload_queue = []
+        self._js_func_onload_queue = []
 
     def load_string(self, string):
         self.load_url(f'data:text/html,{string}')
@@ -175,14 +180,6 @@ class CEFPanda(DirectObject):
         url = f'file://{filepath}'
         self.load_url(url)
 
-    def load(self, filepath):
-        warnings.warn(
-            'load() is deprecated, use load_file() instead',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        self.load_file(filepath)
-
     def load_url(self, url):
         if not url:
             url = 'about:blank'
@@ -190,11 +187,17 @@ class CEFPanda(DirectObject):
         self._is_loaded = False
         self.browser.GetMainFrame().LoadUrl(url)
 
-    def execute_js(self, js_string, onload=False):
+    def exec_js_string(self, js_string, *, onload=True):
         if onload and not self._is_loaded:
             self._js_onload_queue.append(js_string)
         else:
             self.browser.GetMainFrame().ExecuteJavascript(js_string)
+
+    def exec_js_func(self, js_func, *args, onload=True):
+        if onload and not self._is_loaded:
+            self._js_func_onload_queue.append((js_func, args))
+        else:
+            self.browser.GetMainFrame().ExecuteJavascript(js_func, *args)
 
     def set_js_function(self, name, func):
         self.jsbindings.SetFunction(name, func)
@@ -292,3 +295,20 @@ class CEFPanda(DirectObject):
             self.browser.SendMouseMoveEvent(posx, posy, mouseLeave=False)
 
         return task.cont
+
+    # aliases for deprecated functions
+    def load(self, filepath):
+        warnings.warn(
+            'load() is deprecated, use load_file() instead',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.load_file(filepath)
+
+    def execute_js(self, js_string, onload=False):
+        warnings.warn(
+            'execute_js() is deprecated, use exec_js_string() instead',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.exec_js_string(js_string, onload=onload)

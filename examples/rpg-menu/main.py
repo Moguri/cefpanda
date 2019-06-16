@@ -20,7 +20,7 @@ class Game(ShowBase):
         self.ui.set_js_function('update_options', self.update_options)
         self.ui.load_file('ui/main.html')
         options = json.dumps(self.get_options())
-        self.ui.execute_js(f'ui_update_options({options})', onload=True)
+        self.ui.exec_js_func('ui_update_options', options)
 
     def get_options(self):
         winprops = self.win.get_properties()
