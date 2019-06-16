@@ -203,6 +203,14 @@ class CEFPanda(DirectObject):
         self.jsbindings.SetFunction(name, func)
         self.jsbindings.Rebind()
 
+    def set_js_object(self, name, obj):
+        self.jsbindings.SetObject(name, obj)
+        self.jsbindings.Rebind()
+
+    def set_js_property(self, name, value):
+        self.jsbindings.SetProperty(name, value)
+        self.jsbindings.Rebind()
+
     def _set_browser_size(self, window=None):
         if window is None:
             return
