@@ -1,147 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-  <!--Grabbing from a CDN for an actual game is not a good idea (forces an internet connection)-->
-  <script src="https://unpkg.com/vue"></script>
-  <script src="https://unpkg.com/vue-router"></script>
+        <!--Grabbing from a CDN for an actual game is not a good idea (forces an internet connection)-->
+        <script src="https://unpkg.com/vue"></script>
+        <script src="https://unpkg.com/vue-router"></script>
 
-  <link href="https://unpkg.com/animate.css" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="style.css">
-</head>
+        <link href="https://unpkg.com/normalize.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="style.css">
+    </head>
 
-<body>
-  <div id="app">
-    <video playsinline autoplay muted loop id="bgvid">
-      <source src="bg.webm" type="video/webm">
-    </video>
+    <body>
+        <video playsinline autoplay muted loop id="bgvid">
+            <source src="bg.webm" type="video/webm">
+        </video>
 
-    <transition
-      name="custom-classes-transition"
-      enter-active-class="animated fadeInLeft"
-      leave-active-class="animated fadeOutRight"
-    >
-      <router-view></router-view>
-    </transition>
-  </div>
+        <div id="app">
+            <div id="nav">
+                <ul>
+                    <li v-for="route in routes">
+                        <router-link :to="route">{{route.name}}</router-link>
+                    </li>
+                </ul>
+            </div>
 
-  <script type="text/x-template" id="home-comp">
-    <div id="home">
-      <div class="nav">
-        <ul>
-          <li><a href="#">Status</a></li>
-          <li><a href="#">Items</a></li>
-          <li><router-link :to="{name: 'options'}">Options</router-link></li>
-        </ul>
-      </div>
 
-      <div id="portraits" class="content">
-        <ul>
-          <li v-for="char in characters">
-            <char-portrait :character="char"></char-portrait>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </script>
+            <div id="content">
+                <router-view></router-view>
+            </div>
+        </div>
 
-  <script type="text/x-template" id="options-comp">
-    <div id="options">
-      <div class="nav">
-        <ul>
-          <li><router-link :to="{name: 'home'}">Back</router-link></li>
-        </ul>
-      </div>
+        <script type="text/x-template" id="char-portrait-tmpl">
+            <div class="portrait">
+                <img :src="character.portrait + '.png'">
+                <span>{{character.name}}</span>
+            </div>
+        </script>
 
-      <div class="content">
-        <h1>Resolution</h1>
-        <select v-model="options.selected_resolution">
-          <option v-for="resolution in options.resolutions">{{resolution}}</option>
-        </select>
-        <h1>Fullscreen</h1>
-        <input type="checkbox" id="fullscreen" v-model="options.fullscreen">
-        <label for="fullscreen">{{options.fullscreen}}</label>
-      </div>
-    </div>
-  </script>
+        <script type="text/x-template" id="home-comp">
+            <div id="home">
+                <ul>
+                    <li v-for="char in characters">
+                        <char-portrait :character="char"></char-portrait>
+                    </li>
+                </ul>
+            </div>
+        </script>
 
-  <script type="text/x-template" id="char-portrait-tmpl">
-    <div class="portrait">
-      <img :src="character.portrait + '.png'">
-      <span>{{character.name}}</span>
-    </div>
-  </script>
+        <script type="text/x-template" id="options-comp">
+            <div id="options">
+                <h1>Resolution</h1>
+                    <select v-model="options.selected_resolution">
+                        <option v-for="resolution in options.resolutions">{{resolution}}</option>
+                    </select>
+                <h1>Fullscreen</h1>
+                <input type="checkbox" id="fullscreen" v-model="options.fullscreen">
+                <label for="fullscreen">{{options.fullscreen}}</label>
+            </div>
+        </script>
 
-  <script>
-    var data = {
-      characters: [
-        {
-          name: "Gustav",
-          portrait: "gustav"
-        },
-        {
-          name: "Sara",
-          portrait: "sara"
-        },
-        {
-          name: "Hans",
-          portrait: "hans"
-        }
-      ],
-      options: {
-        selected_resolution: '1280 x 720',
-        resolutions: [
-          '1280 x 720'
-        ],
-        fullscreen: false
-      }
-    }
+        <script>
+            var data = {
+                characters: [
+                    {
+                        name: "Gustav",
+                        portrait: "gustav"
+                    },
+                    {
+                        name: "Sara",
+                        portrait: "sara"
+                    },
+                    {
+                        name: "Hans",
+                        portrait: "hans"
+                    }
+                ],
+                options: {
+                    selected_resolution: '1280 x 720',
+                    resolutions: [
+                        '1280 x 720'
+                    ],
+                    fullscreen: false
+                }
+            };
 
-    Vue.component('char-portrait', {
-      props: ['character'],
-      template: '#char-portrait-tmpl'
-    })
+            Vue.component('char-portrait', {
+                props: ['character'],
+                template: '#char-portrait-tmpl'
+            });
 
-    const Home = {
-      props: ['characters'],
-      template: '#home-comp'
-    }
+            const Home = {
+                props: ['characters'],
+                template: '#home-comp'
+            };
 
-    const Options = {
-      props: ['options'],
-      template: '#options-comp'
-    }
+            const Options = {
+                props: ['options'],
+                template: '#options-comp'
+            };
 
-    var routes = [
-      {path: '', name: 'home', component: Home, props: {characters: data.characters}},
-      {path: '/options', name: 'options', component: Options, props: {options: data.options}}
-    ]
+            var routes = [
+                {path: '', name: 'home', component: Home, props: {characters: data.characters}},
+                {path: '/options', name: 'options', component: Options, props: {options: data.options}}
+            ];
+            data.routes = routes;
 
-   
-    var router = new VueRouter({
-      routes
-    })
 
-    var app = new Vue({
-      el: '#app',
-      data: data,
-      router: router,
-      watch: {
-        options: {
-          handler: function(new_options) {
-            update_options(new_options)
-          },
-          deep: true
-        }
-      }
-    })
+            var router = new VueRouter({
+                routes
+            });
 
-    var ui_update_options = function(new_options) {
-      Object.assign(data.options, new_options) 
-    }
-  </script>
-</body>
+            var app = new Vue({
+                el: '#app',
+                data: data,
+                router: router,
+                watch: {
+                    options: {
+                        handler: function(new_options) {
+                            update_options(new_options)
+                        },
+                        deep: true
+                    }
+                }
+            });
+
+            var ui_update_options = function(new_options) {
+                Object.assign(data.options, new_options) 
+            };
+        </script>
+    </body>
 </html>
