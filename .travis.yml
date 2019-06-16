@@ -1,0 +1,30 @@
+language: python
+sudo: required
+dist: xenial
+python:
+  - '3.6'
+  - '3.7'
+script: python setup.py test
+before_deploy: python setup.py sdist bdist_wheel
+deploy:
+  - provider: pypi
+    skip_cleanup: true
+    skip_existing: true
+    on:
+      tags: true
+      repo: Moguri/cefpanda
+      python: '3.7'
+    user: Moguri
+    password:
+        secure: oIL8nWRYCsbC6o2v/HP0G/xwP/PAU+ABc/D0uWdVY9fO0l4jyjOiBuywkIAUgIP/SWNRAxRrN36gxEtKVKL8SGuFr6nwYMfnNPcjOL/3DnOjsFnBBd1BL2NFd/scEkuTSQsmwAZYFZFLmeZ5ngt2mU4ttjgAkCpCnrw6/BLjz7G3Jehw4lIv0KSGJDs4Fk6icChZtpk4BRSqWfXgiuF2J+3odOl/5yuiTAFZyXJBtwUMtvliBvdm7BnLPvqixPwTv6sPpymPQVoS0UvMPh+BLJ8w9jMa0S+j7nDDWgasK6W26e+a4+ioEe8OWME+0/C0w0jm0nR4sJDOttHgwF45+MonhKS4RI5BI9nuz64NHYNxaRB+quaojT1fipMSVwyLv2KrqnGgJIP8pkYRQmavHF87iZIOxk9LZ6/RzV/BRCDntSjJRwBwD2iby6bqYoMFjBT1TDcDhxSm7CJVSlJ5DFghjkcaJQ7L/sIkZggZT7JfIJOyjdPcE6PnxwLmkzlKLOlN3BrYGXCAnwV1g3vyF0KSOqyvC/UIPQ/CBx6ZWZ32kO0SB6NmgF4e9zqG16Ew5YjVe8QO1NxcSaE5OrNWVfYFBMNzI38CZumwTif2SXrKahCqxJdNNfIfgplhgX9gAd21XpxQ5unwCHg0YTjHHEl0TbHvU0Gm2G+5SZ05Npg=
+    distributions: sdist bdist_wheel
+  - provider: releases
+    on:
+        tags: true
+        repo: Moguri/cefpanda
+        python: '3.7'
+    skip_cleanup: true
+    api_key:
+        secure: FJZyjQEX0twjb85o+UnG8T0tRPLHBEcMaJ7M1VZk87UbHep69UTCe3+v7eQGNK5lyy9iTUjn7xT5E/jbtE7QqSVLYh5OvTriH2WL05jhUkyxAiUNIHodFhlnrvbuHmejvupqzDj4G2fa4It4ivLGS4SU5A2fzRCuGLpBrxPd+mp+AaJFr/zCAIGI59vEK3hEsjSzkDiUSt8db/JkvxwftLBuu8BWpy0wT5xZdhx8dOHbzSc3tXRdGQ+NhSZ1SGmu8yakWCZjMRUyTBFyeBohaADcK91xxMb88ZiPZai5XxsB9RBylfNk8TqGDDruXQXto6GMebXjd0h/XVeMiPIEoQWQaM38A7eo4QV+fFBhjmtWhCn9v1h5WZzvW/JbsgMt5olpiRhMhzCdoGHwSmyoSdy0zSH0uA94P9o6WANFAQVlAS6vz2xxfX9HEMD4scoTKsbDJqfopv6cJQwV/jn0xfZ1gLt9l08hwSqC5nylqQGhqIXJNojfrxrlaEhsncdCNsLMjtR0GDt0hu1mooaa0I99PcaM/T9DqStYq3wcMog9YU3HNUhKf2XIPuQKLqVPbslje95YsvsIRWN89jIo/UAFaFjFGv6Bt7Hcf1mEs01ZqbHxzSE7wvwCwpBrLHJkQq/HzfFHasQ3DWkJHtaVM8Kc/NcGWgPJ1vP7+bCvna0=
+    file_glob: true
+    file: dist/*
