@@ -128,7 +128,7 @@
             });
 
             var ui_update_options = function(new_options) {
-                Object.assign(data.options, new_options) 
+                data.options = Object.assign({}, data.options, JSON.parse(new_options));
             };
         </script>
     </body>
