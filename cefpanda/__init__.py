@@ -26,6 +26,10 @@ class CefClientHandler:
         self.popup_img = p3d.PNMImage(rect[2], rect[3])
         self.popup_img.add_alpha()
 
+    def _paint_popup(self):
+        posx, posy = self.popup_pos
+        self.texture.load_sub_image(self.popup_img, posx, posy, 0, 0)
+
     def OnPaint(self, **kwargs): #pylint: disable=invalid-name
         element_type = kwargs['element_type']
         paint_buffer = kwargs['paint_buffer']
@@ -39,8 +43,7 @@ class CefClientHandler:
             tex.set_ram_image(paint_buffer.GetString(mode="bgra", origin="bottom-left"))
 
             if self.popup_show:
-                posx, posy = self.popup_pos
-                tex.load_sub_image(self.popup_img, posx, posy, 0, 0)
+                self._paint_popup()
         elif element_type == cefpython.PET_POPUP:
             if width != self.popup_img.get_x_size() or height != self.popup_img.get_y_size():
                 return
@@ -55,6 +58,7 @@ class CefClientHandler:
                 if posx == width:
                     posx = 0
                     posy += 1
+            self._paint_popup()
         else:
             raise Exception("Unknown element_type: %s" % element_type)
 
