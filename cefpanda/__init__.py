@@ -197,7 +197,7 @@ class CEFPanda(DirectObject):
         if onload and not self._is_loaded:
             self._js_func_onload_queue.append((js_func, args))
         else:
-            self.browser.GetMainFrame().ExecuteJavascript(js_func, *args)
+            self.browser.GetMainFrame().ExecuteFunction(js_func, *args)
 
     def set_js_function(self, name, func):
         self.jsbindings.SetFunction(name, func)
