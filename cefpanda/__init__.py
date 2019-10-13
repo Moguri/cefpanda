@@ -223,7 +223,7 @@ class CEFPanda(DirectObject):
         height = int(round(window.get_y_size() * self._UI_SCALE))
 
         # We only want to resize if the window size actually changed.
-        if self._cef_texture.get_x_size() != width and self._cef_texture.get_y_size() != height:
+        if self._cef_texture.get_x_size() != width or self._cef_texture.get_y_size() != height:
             self._cef_texture.set_x_size(width)
             self._cef_texture.set_y_size(height)
 
