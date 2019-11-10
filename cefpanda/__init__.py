@@ -135,7 +135,7 @@ class CEFPanda(DirectObject):
         self.jsbindings = cefpython.JavascriptBindings()
 
         self.browser.SendFocusEvent(True)
-        self._set_browser_size()
+        self._set_browser_size(base.win)
         self.accept('window-event', self._set_browser_size)
 
         base.buttonThrowers[0].node().setKeystrokeEvent('keystroke')
