@@ -80,9 +80,7 @@ class CefClientHandler:
 
 
 class CEFPanda(DirectObject):
-    _UI_SCALE = 1.0
-
-    def __init__(self):
+    def __init__(self, transparent=True, size=None, parent=None):
         super().__init__()
         cef_mod_dir = cefpython.GetModuleDirectory()
         app_settings = {
@@ -108,11 +106,18 @@ class CEFPanda(DirectObject):
         self._cef_texture.set_format(p3d.Texture.FRgba4)
 
         card_maker = p3d.CardMaker("browser2d")
-        card_maker.set_frame(-self._UI_SCALE, self._UI_SCALE, -self._UI_SCALE, self._UI_SCALE)
+        if size is None:
+            size = [-1, 1, -1, 1]
+        card_maker.set_frame(*size)
+        self._size = size
         node = card_maker.generate()
-        self._cef_node = base.render2d.attachNewNode(node)
+        if parent is None:
+            self._cef_node = base.render2d.attachNewNode(node)
+        else:
+            self._cef_node = parent.attachNewNode(node)
         self._cef_node.set_texture(self._cef_texture)
-        self._cef_node.set_transparency(p3d.TransparencyAttrib.MAlpha)
+        if transparent:
+            self._cef_node.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         winhnd = base.win.getWindowHandle().getIntHandle()
         wininfo = cefpython.WindowInfo()
@@ -156,6 +161,9 @@ class CEFPanda(DirectObject):
         atexit.register(self._shutdown_cef)
 
         self.use_mouse = True
+
+    def node(self):
+        return self._cef_node
 
     def _shutdown_cef(self):
         self.browser.CloseBrowser()
@@ -223,8 +231,9 @@ class CEFPanda(DirectObject):
             self._shutdown_cef()
             return
 
-        width = int(round(window.get_x_size() * self._UI_SCALE))
-        height = int(round(window.get_y_size() * self._UI_SCALE))
+        left, right, bottom, top = self._size
+        width = int(round(window.get_x_size() * (right - left) / 2.0))
+        height = int(round(window.get_y_size() * (top - bottom) / 2.0))
 
         # We only want to resize if the window size actually changed.
         if self._cef_texture.get_x_size() != width or self._cef_texture.get_y_size() != height:
@@ -278,8 +287,13 @@ class CEFPanda(DirectObject):
 
     def _get_mouse_pos(self):
         mouse = base.mouseWatcherNode.getMouse()
-        posx = (mouse.get_x() + 1.0) / 2.0 * self._cef_texture.get_x_size()
-        posy = (mouse.get_y() + 1.0) / 2.0 * self._cef_texture.get_y_size()
+        pos = self._cef_node.get_relative_point(
+            base.render2d,
+            p3d.Vec3(mouse.get_x(), 0, mouse.get_y()),
+        )
+        left, right, bottom, top = self._size
+        posx = (pos.x - left) / (right - left) * self._cef_texture.get_x_size()
+        posy = (pos.z - bottom) / (top - bottom) * self._cef_texture.get_y_size()
         posy = self._cef_texture.get_y_size() - posy
 
         return posx, posy
@@ -289,6 +303,10 @@ class CEFPanda(DirectObject):
             return
 
         posx, posy = self._get_mouse_pos()
+        x_in_bounds = 0 <= posx <= self._cef_texture.get_x_size()
+        y_in_bounds = 0 <= posy <= self._cef_texture.get_y_size()
+        if not all([x_in_bounds, y_in_bounds]):
+            return
 
         self.browser.SendMouseClickEvent(
             posx,
