@@ -82,13 +82,30 @@ class CefClientHandler:
 class CEFPanda(DirectObject):
     def __init__(self, transparent=True, size=None, parent=None):
         super().__init__()
-        cef_mod_dir = cefpython.GetModuleDirectory()
+        # Common application settings
         app_settings = {
             "windowless_rendering_enabled": True,
-            "locales_dir_path": os.path.join(cef_mod_dir, 'locales'),
-            "resources_dir_path": cefpython.GetModuleDirectory(),
-            "browser_subprocess_path": os.path.join(cef_mod_dir, 'subprocess'),
         }
+        cef_mod_dir_root = cefpython.GetModuleDirectory()
+        if sys.platform == "darwin":
+            app_settings['external_message_pump'] = True
+            # Detect if we are running in a bundled app, and if so fix the path
+            # to the framework resources
+            main_dir = p3d.ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+            if main_dir.startswith(cef_mod_dir_root):
+                app_settings['browser_subprocess_path'] = os.path.normpath(
+                    os.path.join(cef_mod_dir_root, '../Frameworks/subprocess')
+                )
+                app_settings['framework_dir_path'] = os.path.normpath(
+                    os.path.join(
+                        cef_mod_dir_root,
+                        '../Resources/Chromium Embedded Framework.framework'
+                    )
+                )
+        else:
+            app_settings['locales_dir_path'] = os.path.join(cef_mod_dir_root, 'locales')
+            app_settings['resources_dir_path'] = cef_mod_dir_root
+            app_settings['browser_subprocess_path'] = os.path.join(cef_mod_dir_root, 'subprocess')
         command_line_settings = {
             # Tweaking OSR performance by setting the same Chromium flags as the
             # cefpython SDL2 example (also see cefpython issue #240)
